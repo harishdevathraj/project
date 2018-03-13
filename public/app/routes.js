@@ -5,15 +5,27 @@ var app = angular.module('appRoutes', ['ngRoute'])
 
     // AngularJS Route Handler
     $routeProvider
-
+    //payment gateway route
+    .when('/checkout', {
+            templateUrl: 'app/views/pages/users/payment.html',
+            
+        })
+/*
     // Route: Home             
         .when('/', {
         templateUrl: 'app/views/pages/home.html'
+    })*/
+
+    //Route: myprojects
+    .when('/dashmyprojects',{
+        templateUrl: 'app/views/pages/users/dashmyprojects.html',
+       
     })
 
-    //Route: File upload
-    .when('/fileupload', {
-        templateUrl: 'app/views/pages/users/indexfileupload.html'
+    //Route: workflow
+    .when('/dashworkflow', {
+        templateUrl: 'app/views/pages/users/dashworkflow.html',
+    
     })
 
     // Route: User Registration

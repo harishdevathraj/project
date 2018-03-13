@@ -17,6 +17,7 @@ angular.module('mainController', ['authServices', 'userServices'])
                 $location.path('/'); // Redirect to home page
                 app.loadme = true; // Allow loading of page
             }
+            
         });
     }
 
@@ -197,7 +198,7 @@ angular.module('mainController', ['authServices', 'userServices'])
                 app.successMsg = data.data.message + '...Redirecting'; // Create Success Message then redirect
                 // Redirect to home page after two milliseconds (2 seconds)
                 $timeout(function() {
-                    $location.path('/'); // Redirect to home
+                    $location.path('/dashworkflow'); // Redirect to home
                     app.loginData = ''; // Clear login form
                     app.successMsg = false; // CLear success message
                     app.disabled = false; // Enable form on submission

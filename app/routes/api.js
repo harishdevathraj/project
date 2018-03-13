@@ -1,9 +1,24 @@
 var User = require('../models/user'); // Import User Model
+var Project = require('../models/project'); // Import Project Model
+var formidable = require('formidable');
+var upload = require('express-fileupload');
+var express = require('express'); // ExperssJS Framework
+var app = express(); // Invoke express to variable for use in application
+const http = require('http');
 var jwt = require('jsonwebtoken'); // Import JWT Package
+var fs = require('fs');
 var secret = 'harrypotter'; // Create custom secret for use in JWT
 var nodemailer = require('nodemailer'); // Import Nodemailer Package
 var sgTransport = require('nodemailer-sendgrid-transport'); // Import Nodemailer Sengrid Transport Package
+var sha512 = require('js-sha512');//PAYMENT GATEWAY
 
+var fname;//to display file name
+
+function errorHandler(err, req, res, next) {
+    console.error(err.message);
+    console.error(err.stack);
+    res.status(500).render("error_template", { error: err});
+}
 module.exports = function(router) {
 
     // Start Sendgrid Configuration Settings (Use only if using sendgrid)
@@ -13,7 +28,6 @@ module.exports = function(router) {
     //         api_key: 'PAssword123!@#' // Sendgrid password
     //     }
     // };
-
     // Nodemailer options (use with g-mail or SMTP)
     var client = nodemailer.createTransport({
         service: 'Zoho',
@@ -27,6 +41,8 @@ module.exports = function(router) {
     // End Sendgrid Configuration Settings  
 
     // Route to register new users  
+
+
     router.post('/users', function(req, res) {
         var user = new User(); // Create new User object
         user.username = req.body.email; // Save username from request to User object
@@ -43,6 +59,14 @@ module.exports = function(router) {
             // Save new user to database
             user.save(function(err) {
                 if (err) {
+                        // Check if duplication error exists
+                        if (err.code == 11000) {
+                            if (err.errmsg[61] == "u") {
+                                res.json({ success: false, message: 'That username is already taken' }); // Display error if username already taken
+                            } else if (err.errmsg[61] == "e") {
+                                res.json({ success: false, message: 'That e-mail is already taken' }); // Display error if e-mail already taken
+                            }
+                    } else if (err) {
                     // Check if any validation errors exists (from user model)
                     if (err.errors !== null) {
                         if (err.errors.name) {
@@ -58,16 +82,9 @@ module.exports = function(router) {
                         } else {
                             res.json({ success: false, message: err }); // Display any other errors with validation
                         }
-                    } else if (err) {
-                        // Check if duplication error exists
-                        if (err.code == 11000) {
-                            if (err.errmsg[61] == "u") {
-                                res.json({ success: false, message: 'That username is already taken' }); // Display error if username already taken
-                            } else if (err.errmsg[61] == "e") {
-                                res.json({ success: false, message: 'That e-mail is already taken' }); // Display error if e-mail already taken
-                            }
+
                         } else {
-                            res.json({ success: false, message: err }); // Display any other error
+                            res.json({ success: false, message: 'Something went wrong!!' }); // Display any other error
                         }
                     }
                 } else {
@@ -93,6 +110,62 @@ module.exports = function(router) {
             });
         }
     });
+
+	//PAYMENT GATEWAY INTEGRATION!!!!!!!!!
+
+	
+    router.post('/createHash', function (req, res) {
+        var salt = 'eCwWELxi';
+        var hash = sha512(req.body.preHashString + salt);
+        console.log(hash);
+        res.send({success : true, hash: hash});
+    });
+
+    router.post('/PaymentStatus', function (req, res) {
+        console.log(req.body);
+        res.send(req.body.status);
+    });
+
+
+
+
+
+    //Route to email the contact form
+    router.post('/contact', function(req, res){
+   
+
+        // setup email data with unicode symbols
+      var email = {
+          from: '"ADMIN", harish@brahm.works', // sender address
+          to: ['k1u2s3h4a5l6@gmail.com', ''],// list of receivers
+          subject: req.body.subject, // Subject line
+         
+          html: `<p>You have a new contact request from brahm.works</p>
+                <h3> Contact details</h3>
+                <ul><li>Name: ${req.body.name}</li>
+                <li>Email: ${req.body.email}</li>
+                <li>Phone: ${req.body.mobile}</li>
+                </ul>
+                <br/>
+                <h3>Message</h3>
+                <p> ${req.body.text}</p>
+                `
+      };
+
+      // send mail with defined transport object
+      client.sendMail(email, function(error, info) {
+          if (error) {
+              return console.log(error);
+          }
+          
+          console.log('Message sent:');  
+        });
+
+    });
+
+
+
+   
 
     // Route to check if username chosen on registration page is taken
     router.post('/checkusername', function(req, res) {
@@ -160,7 +233,12 @@ module.exports = function(router) {
 
     // Route for user logins
     router.post('/authenticate', function(req, res) {
+        if(req.body.username == null || req.body.username == '' ){
+            res.json({ success: false, message: 'Please enter your Email-id' });
+        }
+        else{
         var loginUser = (req.body.username).toLowerCase(); // Ensure username is checked in lowercase against database
+        
         User.findOne({ username: loginUser }).select('email username password active').exec(function(err, user) {
             if (err) {
                 // Create an e-mail object that contains the error. Set to automatically send it to myself for troubleshooting.
@@ -184,7 +262,7 @@ module.exports = function(router) {
             } else {
                 // Check if user is found in the database (based on username)           
                 if (!user) {
-                    res.json({ success: false, message: 'Username not found' }); // Username not found in database
+                    res.json({ success: false, message: 'Email-id not found' }); // Username not found in database
                     /* if (!req.body.password) {
                         res.json({ success: false, message: 'blah' });
                     }*/
@@ -195,7 +273,7 @@ module.exports = function(router) {
                     } else {
                         var validPassword = user.comparePassword(req.body.password); // Check if password matches password provided by user 
                         if (!validPassword) {
-                            res.json({ success: false, message: 'Could not authenticate password' }); // Password does not match password in database
+                            res.json({ success: false, message: 'Incorrect password' }); // Password does not match password in database
                         } else if (!user.active) {
                             res.json({ success: false, message: 'Account is not yet activated. Please check your e-mail for activation link.', expired: true }); // Account is not activated 
                         } else {
@@ -206,8 +284,9 @@ module.exports = function(router) {
                 }
             }
         });
+    
+    }
     });
-
     // Route to activate the user's account 
     router.put('/activate/:token', function(req, res) {
         User.findOne({ temporarytoken: req.params.token }, function(err, user) {
@@ -833,6 +912,7 @@ module.exports = function(router) {
         });
     });
 
+
     // Route to update/edit a user
     router.put('/edit', function(req, res) {
         var editUser = req.body._id; // Assign _id from user to be editted to a variable
@@ -1126,6 +1206,277 @@ module.exports = function(router) {
             }
         });
     });
+
+
+
+
+        router.get('/records', function(req, res, next) {
+            console.log("demo");
+            console.log(req.query.name);
+        Project.find({email : req.query.name})
+        .exec(function(err, data){
+            if(err){
+                res.json(err)
+            } else {
+                res.json(data)
+            }
+        });
+    });
+
+    router.post('/records', function(req, res, next){
+        console.log(req.body);
+
+        var pro = new Project();
+        pro.project=req.body.project;
+        pro.description=req.body.description;
+        pro.filename=fname;
+        pro.process=req.body.process;
+        pro.material=req.body.material;
+        pro.email=req.body.email;
+        pro.save(function (err) {
+            res.json('POST records clear');
+            }); 
+        fname= "";
+    });
+
+    router.delete('/records/:id', function(req, res, next){
+        var id = req.params.id;
+        console.log("delete " + id);
+        Project.findByIdAndRemove(req.params.id, (err, todo) => {  
+        if (err) return res.status(500).send(err);
+            res.json('deleted');
+        });
+
+    });
+
+    router.put('/records/:id', function(req, res, next){
+        var id = req.params.id;
+        Project.updateOne(
+            {'_id': new ObjectId(id)},
+            { $set: {
+                'name' : req.body.name,
+                'email': req.body.email,
+                'phone': req.body.phone
+                }
+            }, function(err, results){
+                console.log(results);
+                res.json(results);
+        });
+    });
+
+
+   
+    router.post('/upload', function(req,res){
+        console.log(req.files.file);
+        var file = req.files.file,
+        name = file.name,
+        type = file.mimetype;
+        fname=name;        
+        
+        var uploadpath ='./uploads/'+name;
+        console.log(uploadpath);
+        file.mv(uploadpath,function(err){
+            if(err){
+               console.log("File Upload Failed",name,err);
+             res.send("Error Occured!")
+            }
+            else {
+               console.log("File Uploaded",name);
+               res.send('Done uploading files');
+            }
+        });
+       /* var form = new formidable.IncomingForm();
+        form.parse(req, function (err, fields, files) {
+            res.write('File uploaded');
+            res.end();
+        });*/
+
+       
+});   
+
+
+/* 
+router.post('/quote',function(req,res){})
+// Vertex
+function Vertex (v1,v2,v3) {
+    this.v1 = Number(v1);
+    this.v2 = Number(v2);
+    this.v3 = Number(v3);
+}
+
+// Vertex Holder
+function VertexHolder (vertex1,vertex2,vertex3) {
+    this.vert1 = vertex1;
+    this.vert2 = vertex2;
+    this.vert3 = vertex3;
+}
+
+// transforming a Node.js Buffer into a V8 array buffer
+function _toArrayBuffer (buffer) {
+    var 
+    ab = new ArrayBuffer(buffer.length),
+    view = new Uint8Array(ab);
+    
+    for (var i = 0; i < buffer.length; ++i) {
+        view[i] = buffer[i];
+    }
+    return ab;
+}
+
+// calculation of the triangle volume
+// source: http://stackoverflow.com/questions/6518404/how-do-i-calculate-the-volume-of-an-object-stored-in-stl-files
+function _triangleVolume (vertexHolder) {
+    var 
+    v321 = Number(vertexHolder.vert3.v1 * vertexHolder.vert2.v2 * vertexHolder.vert1.v3),
+    v231 = Number(vertexHolder.vert2.v1 * vertexHolder.vert3.v2 * vertexHolder.vert1.v3),
+    v312 = Number(vertexHolder.vert3.v1 * vertexHolder.vert1.v2 * vertexHolder.vert2.v3),
+    v132 = Number(vertexHolder.vert1.v1 * vertexHolder.vert3.v2 * vertexHolder.vert2.v3),
+    v213 = Number(vertexHolder.vert2.v1 * vertexHolder.vert1.v2 * vertexHolder.vert3.v3),
+    v123 = Number(vertexHolder.vert1.v1 * vertexHolder.vert2.v2 * vertexHolder.vert3.v3);
+  // 
+    return Number(1.0/6.0)*(-v321 + v231 + v312 - v132 - v213 + v123);
+}
+
+function _boundingBox (vertexes) {
+  if (vertexes.length === 0) return [0,0,0]
+  
+  var minx = Infinity,  maxx = -Infinity,  miny = Infinity,  maxy = -Infinity,  minz = Infinity,  maxz = -Infinity;
+  var tminx = Infinity, tmaxx = -Infinity, tminy = Infinity, tmaxy = -Infinity, tminz = Infinity, tmaxz = -Infinity;
+
+  vertexes.forEach(function(vertexHolder) {
+    tminx = Math.min(vertexHolder.vert1.v1, vertexHolder.vert2.v1, vertexHolder.vert3.v1)
+    minx  = tminx < minx ? tminx : minx
+    tmaxx = Math.max(vertexHolder.vert1.v1, vertexHolder.vert2.v1, vertexHolder.vert3.v1)
+    maxx  = tmaxx > maxx ? tmaxx : maxx
+
+
+    tminy = Math.min(vertexHolder.vert1.v2, vertexHolder.vert2.v2, vertexHolder.vert3.v2)
+    miny  = tminy < miny ? tminy : miny
+    tmaxy = Math.max(vertexHolder.vert1.v2, vertexHolder.vert2.v2, vertexHolder.vert3.v2)
+    maxy  = tmaxy > maxy ? tmaxy : maxy
+
+
+    tminz = Math.min(vertexHolder.vert1.v3, vertexHolder.vert2.v3, vertexHolder.vert3.v3)
+    minz  = tminz < minz ? tminz : minz
+    tmaxz = Math.max(vertexHolder.vert1.v3, vertexHolder.vert2.v3, vertexHolder.vert3.v3)
+    maxz  = tmaxz > maxz ? tmaxz : maxz
+  });
+
+  return [maxx - minx, maxy - miny, maxz - minz];
+}
+
+// parsing an STL ASCII string
+function _parseSTLString (stl) {
+    var totalVol = 0;
+    // yes, this is the regular expression, matching the vertexes
+    // it was kind of tricky but it is fast and does the job
+    var vertexes = stl.match(/facet\s+normal\s+([-+]?\b(?:[0-9]*\.)?[0-9]+(?:[eE][-+]?[0-9]+)?\b)\s+([-+]?\b(?:[0-9]*\.)?[0-9]+(?:[eE][-+]?[0-9]+)?\b)\s+([-+]?\b(?:[0-9]*\.)?[0-9]+(?:[eE][-+]?[0-9]+)?\b)\s+outer\s+loop\s+vertex\s+([-+]?\b(?:[0-9]*\.)?[0-9]+(?:[eE][-+]?[0-9]+)?\b)\s+([-+]?\b(?:[0-9]*\.)?[0-9]+(?:[eE][-+]?[0-9]+)?\b)\s+([-+]?\b(?:[0-9]*\.)?[0-9]+(?:[eE][-+]?[0-9]+)?\b)\s+vertex\s+([-+]?\b(?:[0-9]*\.)?[0-9]+(?:[eE][-+]?[0-9]+)?\b)\s+([-+]?\b(?:[0-9]*\.)?[0-9]+(?:[eE][-+]?[0-9]+)?\b)\s+([-+]?\b(?:[0-9]*\.)?[0-9]+(?:[eE][-+]?[0-9]+)?\b)\s+vertex\s+([-+]?\b(?:[0-9]*\.)?[0-9]+(?:[eE][-+]?[0-9]+)?\b)\s+([-+]?\b(?:[0-9]*\.)?[0-9]+(?:[eE][-+]?[0-9]+)?\b)\s+([-+]?\b(?:[0-9]*\.)?[0-9]+(?:[eE][-+]?[0-9]+)?\b)\s+endloop\s+endfacet/g);
+
+  var preVertexHolder;
+  var verteces = Array(vertexes.length)
+    vertexes.forEach(function (vert, i) {
+        preVertexHolder = new VertexHolder();
+        vert.match(/vertex\s+([-+]?\b(?:[0-9]*\.)?[0-9]+(?:[eE][-+]?[0-9]+)?\b)\s+([-+]?\b(?:[0-9]*\.)?[0-9]+(?:[eE][-+]?[0-9]+)?\b)\s+([-+]?\b(?:[0-9]*\.)?[0-9]+(?:[eE][-+]?[0-9]+)?\b)\s/g).forEach(function (vertex, i) {
+            var tempVertex  = vertex.replace('vertex', '').match(/[-+]?[0-9]*\.?[0-9]+/g);
+            var preVertex   = new Vertex(tempVertex[0],tempVertex[1],tempVertex[2]);
+            preVertexHolder['vert'+(i+1)] = preVertex;
+        });
+        var partVolume = _triangleVolume(preVertexHolder);
+        totalVol += Number(partVolume);
+    verteces[i] = preVertexHolder
+    })
+
+    var volumeTotal = Math.abs(totalVol)/1000;
+    return {
+        volume: volumeTotal,            // cubic cm
+        weight: volumeTotal * 1.04, // gm
+    boundingBox: _boundingBox(verteces),
+    }
+}
+
+// parsing an STL Binary File
+// (borrowed some code from here: https://github.com/mrdoob/three.js/blob/master/examples/js/loaders/STLLoader.js)
+function _parseSTLBinary (buf) {
+    buf = _toArrayBuffer(buf);
+
+    var 
+    headerLength    = 80,
+    dataOffset      = 84,
+    faceLength      = 12*4 + 2,
+    le = true; // is little-endian
+
+    var 
+    dvTriangleCount = new DataView(buf, headerLength, 4),
+    numTriangles    = dvTriangleCount.getUint32(0, le),
+    totalVol        = 0;
+
+  var verteces = Array(numTriangles)
+    for (var i = 0; i < numTriangles; i++) {
+        var 
+        dv          = new DataView(buf, dataOffset + i*faceLength, faceLength),
+        normal      = new Vertex(dv.getFloat32(0, le), dv.getFloat32(4, le), dv.getFloat32(8, le)),
+        vertHolder  = new VertexHolder();
+        for(var v = 3; v < 12; v+=3) {
+            var vert = new Vertex(dv.getFloat32(v*4, le), dv.getFloat32((v+1)*4, le), dv.getFloat32( (v+2)*4, le ) );
+            vertHolder['vert'+(v/3)] = vert;
+        }
+        totalVol += _triangleVolume(vertHolder);
+    verteces[i] = vertHolder;
+    }
+
+    var volumeTotal = Math.abs(totalVol)/1000;
+    return {
+        volume: volumeTotal,            // cubic cm
+        weight: volumeTotal * 1.04, // gm
+    boundingBox: _boundingBox(verteces),
+    }
+}
+
+// NodeStl
+
+    
+function NodeStl (stlPath) {
+    console.log(stlPath+'NODESTLLLLLLLLLLLL');
+    var buf;
+    if(Object.prototype.toString.call(stlPath)=='[object String]')
+        buf = fs.readFileSync(stlPath);
+    else if(Object.prototype.toString.call(stlPath)=='[object Uint8Array]')
+        buf=stlPath;
+    //console.log(buf +' NODESTL FUNCTION');
+    isAscii = true;
+    
+        
+    for (var i=0, len=buf.length; i<len; i++) {
+        if (buf[i] > 127) { isAscii=false; break; }
+    }
+
+    if (isAscii)
+        return _parseSTLString(buf.toString());
+    else
+        return _parseSTLBinary(buf);
+}
+
+var stl = NodeStl('./uploads/'+name);
+    console.log(stl.volume + 'cm^3');
+    console.log(stl.weight + 'gm');
+    var vol=stl.volume;
+    //res.send('volume is ' +vol + ' and the price is '+vol*55 );
+    var pric=vol*55;
+    //res.send ('blah');
+    
+    
+
+
+
+
+    });*/
+ 
+    
+/*    router.use(errorHandler);
+    var server = router.listen(process.env.PORT || 3000, function() {
+        var port = server.address().port;
+        console.log('Express server listening on port %s.', port);
+    })*/
 
     return router; // Return the router object to server
 };

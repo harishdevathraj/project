@@ -20,6 +20,55 @@ body {
     font-family: "Lato";
 }
 
+.number {
+    text-align: center;
+    margin: 15px 0px;
+}
+
+.number i {
+    color: #FF8C00;
+    font-size: 36px;
+    margin-bottom: 20px;
+}
+
+.number h3 {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+.white-text {
+    color: #FFF;
+}
+.bg-img {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    background-position: center;
+    background-size: cover;
+    background-attachment: fixed;
+}
+.bg-grey {
+    background-color: #FAFAFA;
+    border-top: 1px solid #EEE;
+    border-bottom: 1px solid #EEE;
+}
+
+.bg-dark {
+    background-color: #1C1D21;
+}
+.bg-img .overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    opacity: .8;
+    background: #1C1D21;
+}
+
+
 .text-muted {
     color: #777;
 }
@@ -27,6 +76,20 @@ body {
 .text-primary {
     color: #1ee2e7;
 }
+.section {
+    position: relative;
+}
+
+.md-padding {
+    padding-top: 120px;
+    padding-bottom: 120px;
+}
+
+.sm-padding {
+    padding-top: 40px;
+    padding-bottom: 40px;
+}
+
 
 p {
     font-size: 14px;
@@ -59,14 +122,17 @@ a.active {
 h1,
 h2,
 h3,
-h4,
+
 h5,
 h6 {
     text-transform: uppercase;
     font-family: Montserrat, "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-weight: 700;
 }
-
+h4{
+    font-family: Montserrat, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 700;
+}
 .img-centered {
     margin: 0 auto;
 }
@@ -303,7 +369,7 @@ fieldset[disabled] .btn-xl.active {
 .navbar-default .nav li a:hover,
 .navbar-default .nav li a:focus {
     outline: 0;
-    color: #1ee2e7;
+    color: #EB7823;
 }
 
 .navbar-default .navbar-nav>.active>a {
@@ -360,8 +426,8 @@ header {
 }
 
 header .intro-text {
-    padding-top: 100px;
-    padding-bottom: 60px;
+    padding-top: 300px;
+    padding-bottom: 250px;
 }
 
 header .intro-text .intro-lead-in {

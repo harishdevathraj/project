@@ -40,8 +40,9 @@ var usernameValidator = [
         message: 'Username should be between {ARGS[0]} and {ARGS[1]} characters'
     }),
     validate({
-        validator: 'isAlphanumeric',
-        message: 'Username must contain letters and numbers only'
+        validator: 'matches',
+        arguments: /^[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,4}$/,
+        message: 'Name must be at least 3 characters, max 40, no special characters or numbers, must have space in between name.'
     })
 ]; 
 
@@ -66,7 +67,9 @@ var UserSchema = new Schema({
     password: { type: String, required: true, validate: passwordValidator, select: false },
     phone: { type: String},
     email: { type: String, required: true, lowercase: true, unique: true, validate: emailValidator },
-    active: { type: Boolean, required: true, default: false },
+    /*project: {type:String},
+    file: {type:String,unique:true},*/
+    active: { type: Boolean, required: true, default: true },
     temporarytoken: { type: String, required: true },
     resettoken: { type: String, required: false },
     permission: { type: String, required: true, default: 'moderator' }
