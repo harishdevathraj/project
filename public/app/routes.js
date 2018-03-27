@@ -5,11 +5,6 @@ var app = angular.module('appRoutes', ['ngRoute'])
 
     // AngularJS Route Handler
     $routeProvider
-    //payment gateway route
-    .when('/checkout', {
-            templateUrl: 'app/views/pages/users/payment.html',
-            
-        })
 /*
     // Route: Home             
         .when('/', {

@@ -9,7 +9,9 @@ angular.module('dashCtrl',[])
             {label: 'File name', key: 'filename'},
             {label: 'Process', key: 'process'},
             {label: 'Material', key: 'material'},
-            {label: 'Email', key: 'email'}   
+            {label: 'Cost', key: 'cost'},
+            {label: 'Email', key: 'email'}
+              
         ];
 
         vm.record = {};
@@ -49,15 +51,15 @@ angular.module('dashCtrl',[])
             $scope.$apply();
         }
 
-        $scope.upload=function(){
+        $scope.upload = function(){
             var fd= new FormData()
-            angular.forEach($scope.files,function(file){
+            angular.forEach($scope.files, function(file){
                 fd.append('file',file)
             })
-            $http.post('api/upload',fd,
-            {
+            $http.post('api/upload',fd,{
                 transformRequest: angular.identity,
-                headers:{'Content-Type':undefined}
+                headers: {'Content-Type': undefined}
+
             })
             .success(function(d){
                 console.log(d);
@@ -81,6 +83,14 @@ angular.module('dashCtrl',[])
             })
         }
 
+        vm.quote=function(data){
+            $http.post('api/quote/'+data).then(function(response){
+                console.log(response.data);
+                vm.getAllRecords();
+            })
+
+        }
+
         vm.getAllRecords();
 
         vm.editMode = false;
@@ -99,7 +109,7 @@ angular.module('dashCtrl',[])
             $http.post('/api/records', vm.record).then(function(response){
                 console.log(response);
                 vm.record = {};
-                vm.getAllRecords();            
+                vm.getAllRecords();           
             }, function(response){
                 vm.handleError(response);
             });

@@ -403,7 +403,7 @@ fieldset[disabled] .btn-xl.active {
         border-radius: 3px;
     }
     .navbar-default.navbar-shrink {
-        padding: 10px 0;
+        padding: 0px 0;
         background-color: #222;
     }
     .navbar-default.navbar-shrink .navbar-brand {
