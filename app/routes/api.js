@@ -92,7 +92,7 @@ module.exports = function(router) {
                         to: [user.email, ''],
                         subject: 'Your Activation Link',
                         text: 'Hello ' + user.name + ', thank you for registering at Brahm works. Please click on the following link to complete your activation: https://quiet-temple-47974.herokuapp.com/activate/' + user.temporarytoken,
-                        html: 'Hello<strong> ' + user.name + '</strong>,<br><br>Thank you for registering at localhost.com. Please click on the link below to complete your activation:<br><br><a href="http://www.herokutestapp3z24.com/activate/' + user.temporarytoken + '">https://quiet-temple-47974.herokuapp.com/activate/</a>'
+                        html: 'Hello<strong> ' + user.name + '</strong>,<br><br>Thank you for registering at localhost.com. Please click on the link below to complete your activation:<br><br><a href=https://quiet-temple-47974.herokuapp.com/activate/' + user.temporarytoken + '">https://quiet-temple-47974.herokuapp.com/activate/</a>'
                     };
                     // Function to send e-mail to the user
                     client.sendMail(email, function(err, info) {
@@ -404,7 +404,7 @@ module.exports = function(router) {
                             to: user.email,
                             subject: 'Activation Link Request',
                             text: 'Hello ' + user.name + ', You recently requested a new account activation link. Please click on the following link to complete your activation: https://quiet-temple-47974.herokuapp.com/activate/' + user.temporarytoken,
-                            html: 'Hello<strong> ' + user.name + '</strong>,<br><br>You recently requested a new account activation link. Please click on the link below to complete your activation:<br><br><a href="https://quiet-temple-47974.herokuapp.com/activate/' + user.temporarytoken + '">http://www.herokutestapp3z24.com/activate/</a>'
+                            html: 'Hello<strong> ' + user.name + '</strong>,<br><br>You recently requested a new account activation link. Please click on the link below to complete your activation:<br><br><a href="https://quiet-temple-47974.herokuapp.com/activate/' + user.temporarytoken + '">https://quiet-temple-47974.herokuapp.com/activate/</a>'
                         };
                         // Function to send e-mail to user
                         client.sendMail(email, function(err, info) {
