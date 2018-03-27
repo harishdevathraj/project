@@ -38,8 +38,8 @@ module.exports = function(app, passport) {
 
     // Facebook Strategy    
     passport.use(new FacebookStrategy({
-            clientID: '310132302703073', // Replace with your Facebook Developer App client ID
-            clientSecret: '2e94e77add384b6e2b2029947c3861b4', // Replace with your Facebook Developer client secret
+            clientID: '1638502572892827', // Replace with your Facebook Developer App client ID
+            clientSecret: '8280a7dc7d52444780d91c90833d2eb3', // Replace with your Facebook Developer client secret
             callbackURL: "https://quiet-temple-47974.herokuapp.com/auth/facebook/callback", // Replace with your Facebook Developer App callback URL
             profileFields: ['id', 'displayName', 'photos', 'email']
         },
@@ -58,8 +58,8 @@ module.exports = function(app, passport) {
 
     // Twitter Strategy
     passport.use(new TwitterStrategy({
-            consumerKey: 'nAsRdF40TX5fQ7QivmuJGWWSj', // Replace with your Twitter Developer App consumer key
-            consumerSecret: 'WH4MaKulaiPzrBttgS5KlQzanXmZIKZ4hmAlflfwX8jk3WNTwA', // Replace with your Twitter Developer App consumer secret
+            consumerKey: '09xN3afh6wq5MT0bPGA5pB6TE', // Replace with your Twitter Developer App consumer key
+            consumerSecret: 'xs9j8sNb2LGcYpKa5mL5PPRr5LH8wA4UCWsGYdfI6sQRc1RCxN', // Replace with your Twitter Developer App consumer secret
             callbackURL: "https://quiet-temple-47974.herokuapp.com/auth/twitter/callback", // Replace with your Twitter Developer App callback URL
             userProfileURL: "https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true"
         },
